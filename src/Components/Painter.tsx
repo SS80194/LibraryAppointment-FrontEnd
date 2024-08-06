@@ -6,7 +6,7 @@ import useResizeAware from "react-resize-aware";
 
 //Painter is a comoponent,used to render pic&ava seat of a specific area
 type PainterProps = {
-    area_id?:string
+    area_id:string
 }
 
 type SeatDat = {
@@ -52,8 +52,9 @@ function KonvaImage(props:KimgProps)
 //Paint a map of library seats
 export default function Painter(props:PainterProps)
 {
-    let area_id="W4-SE";
+    let area_id=props.area_id;
     //研究一下怎么把这个东西倒进去
+    let res_path="/resources/";
     let area_pic:string=area_id+'.jpg';
     let area_data:string=area_id+'.json';
     
@@ -71,7 +72,7 @@ export default function Painter(props:PainterProps)
     const [scale,setScale]=useState<number>(1);
     const [imgld,setImgld]=useState<boolean>(false);
     //加载图片
-    const [BGimage,img_status]=useImage("/resources/W4-SE.jpg");
+    const [BGimage,img_status]=useImage(res_path+area_pic);
     function getScale(){
         let scale_t:number;
         if(BGimage)
@@ -98,7 +99,7 @@ export default function Painter(props:PainterProps)
 
     function getData()
     {
-        fetch("/resources/W4-SE.json")
+        fetch(res_path+area_data)
         .then((res)=>res.json())
         .then((json_dat)=>{
             setList(json_dat.data);
@@ -122,7 +123,7 @@ export default function Painter(props:PainterProps)
 
         <Layer>
             {
-                <KonvaImage src="/resources/W4-SE.jpg" maxWidth={window.innerWidth} maxHeight={window.innerHeight}/>
+                <KonvaImage src={res_path+area_pic} maxWidth={window.innerWidth} maxHeight={window.innerHeight}/>
             //<img src="/resources/W4-SE.jpg" alt="逆臣乱党，都要受这灼心之刑。"/>
             }
         </Layer>
