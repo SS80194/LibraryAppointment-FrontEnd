@@ -4,15 +4,10 @@ import {useState,useEffect} from "react";
 import useImage from "use-image"
 import useResizeAware from "react-resize-aware";
 
-//Painter is a comoponent,used to render pic&ava seat of a specific area
-type PainterProps = {
-    area_id:string
-}
-
 type SeatDat = {
     devId:number;
     coordinate:string;
-
+    devName:string;
     [key:string]:any;
 }
 
@@ -20,17 +15,7 @@ type PinProps={
     seat_status:SeatDat;
     width:number;
     height:number;
-}
-function ColoredPin(props:PinProps)
-{
-    let parts:string[]=props.seat_status.coordinate.split(',');
-    if(parts.length<2) throw new Error("Invalid Coordinate");
-    const [x_string,y_string]=parts;
-    //How to use TS here?
-    let x:number=Number(x_string);
-    let y:number=Number(y_string);
-    //if(props.seat_status.devId==1962) return (<Circle x={(x/100)*props.width} y={(y/100)*props.height} radius={5} fill="yellow"/>);
-    return (<Circle x={(x/100)*props.width} y={(y/100)*props.height} radius={5} fill="green"/>)
+    onClick:(arg0:SeatDat)=>any;
 }
 
 type KimgProps={
@@ -49,7 +34,12 @@ function KonvaImage(props:KimgProps)
     return <Image image={image} scaleX={scale} scaleY={scale}/>
 }
 
-//Paint a map of library seats
+//Painter is a comoponent,used to render pic&ava seat of a specific area
+//A Painter a map of library seats
+type PainterProps = {
+    area_id:string;
+    onClick?:(arg0:SeatDat)=>any;
+}
 export default function Painter(props:PainterProps)
 {
     let area_id=props.area_id;
@@ -64,8 +54,6 @@ export default function Painter(props:PainterProps)
     const[resizeListener,sizes]=useResizeAware();
     const [width,setWidth]=useState<number>(window.innerWidth);
     const [height,setHeight]=useState<number>(window.innerHeight);
-    //useEffect(()=>{setWidth(window.innerWidth)},[window.innerWidth]);
-    //useEffect(()=>{setHeight(window.innerHeight)},[window.innerHeight]);
     //定义图片宽高变量，并加载图片
     const [picW,setpicW]=useState<number>(sizes?sizes.width:1920);
     const [picH,setpicH]=useState<number>(sizes?sizes.height:1080);
@@ -107,15 +95,32 @@ export default function Painter(props:PainterProps)
     }
     useEffect(getData,[]);
 
-    //useEffect(()=>{console.log(list)},list);
     function showInfo()
     {
-        //console.log("scale",scale);
-        //console.log(width,height);
-        console.log(picW,picH);
+        //用来console.log一些所需要的信息
     }
-    showInfo();
-    //return (<img src="/resources/W4-SE.jpg" alt="逆臣乱党，都要受这灼心之刑。"/>)
+    //showInfo();
+ 
+    //选择座位
+    function selectSeat(selectedSeat:SeatDat)
+    {
+        console.log(selectedSeat.devName);
+    }
+    
+    //子组件：彩色的
+    function ColoredPin(props:PinProps)
+    {
+        let parts:string[]=props.seat_status.coordinate.split(',');
+        if(parts.length<2) throw new Error("Invalid Coordinate");
+        const [x_string,y_string]=parts;
+        //How to use TS here?
+        let x:number=Number(x_string);
+        let y:number=Number(y_string);
+        return (<Circle x={(x/100)*props.width} y={(y/100)*props.height} 
+        onClick={()=>props.onClick(props.seat_status)}
+        radius={5} fill="green"/>)
+    }
+    //本组件
     return (
     <div>
     {resizeListener}
@@ -124,7 +129,6 @@ export default function Painter(props:PainterProps)
         <Layer>
             {
                 <KonvaImage src={res_path+area_pic} maxWidth={window.innerWidth} maxHeight={window.innerHeight}/>
-            //<img src="/resources/W4-SE.jpg" alt="逆臣乱党，都要受这灼心之刑。"/>
             }
         </Layer>
         <Layer>
@@ -133,6 +137,7 @@ export default function Painter(props:PainterProps)
             list.map(seat_status=><ColoredPin 
                 seat_status={seat_status}
                 width={picW} height={picH}
+                onClick={props.onClick?props.onClick:selectSeat}
                 key={seat_status.devId}/>)
             :<></>
         }
