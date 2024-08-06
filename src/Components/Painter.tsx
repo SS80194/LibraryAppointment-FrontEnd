@@ -2,6 +2,7 @@ import {Stage,Layer,Circle,Image} from "react-konva"
 import Konva from "konva";
 import {useState,useEffect} from "react";
 import useImage from "use-image"
+import useResizeAware from "react-resize-aware";
 
 //Painter is a comoponent,used to render pic&ava seat of a specific area
 type PainterProps = {
@@ -59,16 +60,18 @@ export default function Painter(props:PainterProps)
     const [list,setList]=useState<SeatDat[]>();
 
     //定义窗口长宽变量
+    const[resizeListener,sizes]=useResizeAware();
     const [width,setWidth]=useState<number>(window.innerWidth);
     const [height,setHeight]=useState<number>(window.innerHeight);
-    useEffect(()=>{setWidth(window.innerWidth)},[window.innerWidth]);
-    useEffect(()=>{setHeight(window.innerHeight)},[window.innerHeight]);
+    //useEffect(()=>{setWidth(window.innerWidth)},[window.innerWidth]);
+    //useEffect(()=>{setHeight(window.innerHeight)},[window.innerHeight]);
     //定义图片宽高变量，并加载图片
-    const [picW,setpicW]=useState<number>(1920);
-    const [picH,setpicH]=useState<number>(1080);
+    const [picW,setpicW]=useState<number>(sizes?sizes.width:1920);
+    const [picH,setpicH]=useState<number>(sizes?sizes.height:1080);
     const [scale,setScale]=useState<number>(1);
+    const [imgld,setImgld]=useState<boolean>(false);
     //加载图片
-    const [BGimage]=useImage("/resources/W4-SE.jpg");
+    const [BGimage,img_status]=useImage("/resources/W4-SE.jpg");
     function getScale(){
         let scale_t:number;
         if(BGimage)
@@ -80,14 +83,18 @@ export default function Painter(props:PainterProps)
         else scale_t=1;
         setScale(scale_t);
     }
-    useEffect(getScale,[width,height]);
-    
+    useEffect(getScale,[width,height,imgld]);
+    if(img_status=='loaded'&&!imgld) setImgld(true);
     //console.log((image as any).height);
     //图片宽高
     
     useEffect(()=>{
-        
-    },[width,height]);
+        if(sizes)
+        {
+        setWidth(sizes.width);
+        setHeight(sizes.height);
+        }
+    },[sizes?sizes.width:0,sizes?sizes.height:0]);
 
     function getData()
     {
@@ -100,16 +107,26 @@ export default function Painter(props:PainterProps)
     useEffect(getData,[]);
 
     //useEffect(()=>{console.log(list)},list);
-
+    function showInfo()
+    {
+        //console.log("scale",scale);
+        //console.log(width,height);
+        console.log(picW,picH);
+    }
+    showInfo();
     //return (<img src="/resources/W4-SE.jpg" alt="逆臣乱党，都要受这灼心之刑。"/>)
-    return (<Stage width={window.innerWidth} height={window.innerHeight}>
+    return (
+    <div>
+    {resizeListener}
+    <Stage width={window.innerWidth} height={window.innerHeight}>
 
         <Layer>
             {
                 <KonvaImage src="/resources/W4-SE.jpg" maxWidth={window.innerWidth} maxHeight={window.innerHeight}/>
             //<img src="/resources/W4-SE.jpg" alt="逆臣乱党，都要受这灼心之刑。"/>
             }
-        </Layer><Layer>
+        </Layer>
+        <Layer>
         {
             list?
             list.map(seat_status=><ColoredPin 
@@ -119,5 +136,5 @@ export default function Painter(props:PainterProps)
             :<></>
         }
         </Layer>
-    </Stage>)
+    </Stage></div>)
 }
