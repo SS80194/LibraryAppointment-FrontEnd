@@ -1,6 +1,6 @@
 import {Stage,Layer,Circle,Image} from "react-konva"
 import Konva from "konva";
-import {useState,useEffect} from "react";
+import {useState,useEffect,useRef} from "react";
 import useImage from "use-image"
 import useResizeAware from "react-resize-aware";
 
@@ -26,11 +26,10 @@ type KimgProps={
 }
 function KonvaImage(props:KimgProps)
 {
-    const [image]=useImage(props.src);
+    const [image] = useImage(props.src);
     if(!image) return null;
-    //console.log((image as any).height);
-    let scale:number=Math.min(props.maxWidth/(image as any).width,props.maxHeight/(image as any).height);
-    //let scale=1;
+    let scale: number
+        = Math.min(props.maxWidth/(image as any).width,props.maxHeight/(image as any).height);
     return <Image image={image} scaleX={scale} scaleY={scale}/>
 }
 
@@ -51,12 +50,28 @@ export default function Painter(props:PainterProps)
     const [list,setList]=useState<SeatDat[]>();
 
     //定义窗口长宽变量
-    const[resizeListener,sizes]=useResizeAware();
     const [width,setWidth]=useState<number>(window.innerWidth);
     const [height,setHeight]=useState<number>(window.innerHeight);
+    const elementRef = useRef<HTMLDivElement>(null);
+    //监听窗口大小的变化
+    function resizeChange(){
+        if (elementRef.current) {
+            const { width, height } = elementRef.current.getBoundingClientRect();
+            setWidth(width);
+            setHeight(height);
+            //console.log(width,height);
+        }
+        else console.log("Null")
+    }
+    useEffect(() => {
+	    // 监听
+	    window.addEventListener('resize', resizeChange);
+	    // 销毁
+	    return () => window.removeEventListener('resize', resizeChange);
+	}, []);
     //定义图片宽高变量，并加载图片
-    const [picW,setpicW]=useState<number>(sizes?sizes.width:1920);
-    const [picH,setpicH]=useState<number>(sizes?sizes.height:1080);
+    const [picW,setpicW] = useState<number>(1920);
+    const [picH,setpicH] = useState<number>(1920);
     const [scale,setScale]=useState<number>(1);
     const [imgld,setImgld]=useState<boolean>(false);
     //加载图片
@@ -73,27 +88,18 @@ export default function Painter(props:PainterProps)
         setScale(scale_t);
     }
     useEffect(getScale,[width,height,imgld]);
-    if(img_status=='loaded'&&!imgld) setImgld(true);
+    if(img_status ==='loaded'&&!imgld) setImgld(true);
     //console.log((image as any).height);
     //图片宽高
     
-    useEffect(()=>{
-        if(sizes)
-        {
-        setWidth(sizes.width);
-        setHeight(sizes.height);
-        }
-    },[sizes?sizes.width:0,sizes?sizes.height:0]);
 
-    function getData()
+    async function getData()
     {
-        fetch(res_path+area_data)
-        .then((res)=>res.json())
-        .then((json_dat)=>{
-            setList(json_dat.data);
-        })
+        let res = await fetch(res_path+area_data);
+        let jsonData = await res.json();
+        setList(jsonData.data);
     }
-    useEffect(getData,[]);
+    useEffect(()=>{getData()},[]);
 
     function showInfo()
     {
@@ -114,32 +120,31 @@ export default function Painter(props:PainterProps)
         if(parts.length<2) throw new Error("Invalid Coordinate");
         const [x_string,y_string]=parts;
         //How to use TS here?
-        let x:number=Number(x_string);
-        let y:number=Number(y_string);
+        let x: number = Number(x_string);
+        let y: number = Number(y_string);
         return (<Circle x={(x/100)*props.width} y={(y/100)*props.height} 
         onClick={()=>props.onClick(props.seat_status)}
         radius={5} fill="green"/>)
     }
     //本组件
     return (
-    <div>
-    {resizeListener}
-    <Stage width={window.innerWidth} height={window.innerHeight}>
+    <div ref = {elementRef}>
+    <Stage width={width} height={height}>
 
         <Layer>
             {
-                <KonvaImage src={res_path+area_pic} maxWidth={window.innerWidth} maxHeight={window.innerHeight}/>
+            <KonvaImage src={res_path+area_pic} 
+            maxWidth={width} maxHeight={height}/>
             }
         </Layer>
         <Layer>
         {
-            list?
+            list&&
             list.map(seat_status=><ColoredPin 
                 seat_status={seat_status}
                 width={picW} height={picH}
                 onClick={props.onClick?props.onClick:selectSeat}
                 key={seat_status.devId}/>)
-            :<></>
         }
         </Layer>
     </Stage></div>)
