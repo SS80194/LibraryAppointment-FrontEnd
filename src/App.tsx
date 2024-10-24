@@ -1,13 +1,8 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-import Painter from "./Components/Painter"
+import AppRouter from "../src/router/router"
 
 function App() {
-  return <div>
-  <Painter area_id="W4-SW"/>
-  <Painter area_id="W4-SE"/>
-  </div>
+  return <AppRouter/>
   
 }
 
