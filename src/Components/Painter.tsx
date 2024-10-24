@@ -49,33 +49,28 @@ export default function Painter(props:PainterProps)
     
     const [list,setList]=useState<SeatDat[]>();
 
-    //定义窗口长宽变量
+    //定义窗口长宽变量，并监听窗口大小的变化。
     const [width,setWidth]=useState<number>(window.innerWidth);
     const [height,setHeight]=useState<number>(window.innerHeight);
     const elementRef = useRef<HTMLDivElement>(null);
-    //监听窗口大小的变化
     function resizeChange(){
         if (elementRef.current) {
             const { width, height } = elementRef.current.getBoundingClientRect();
             setWidth(width);
             setHeight(height);
-            //console.log(width,height);
         }
-        else console.log("Null")
+        else console.log("Null");
     }
     useEffect(() => {
-	    // 监听
 	    window.addEventListener('resize', resizeChange);
-	    // 销毁
 	    return () => window.removeEventListener('resize', resizeChange);
 	}, []);
     //定义图片宽高变量，并加载图片
     const [picW,setpicW] = useState<number>(1920);
     const [picH,setpicH] = useState<number>(1920);
-    const [scale,setScale]=useState<number>(1);
-    const [imgld,setImgld]=useState<boolean>(false);
-    //加载图片
-    const [BGimage,img_status]=useImage(res_path+area_pic);
+    const [scale,setScale] = useState<number>(1);
+    const [imgld,setImgld] = useState<boolean>(false);
+    const [BGimage,img_status] = useImage(res_path+area_pic);
     function getScale(){
         let scale_t:number;
         if(BGimage)
@@ -99,7 +94,7 @@ export default function Painter(props:PainterProps)
         let jsonData = await res.json();
         setList(jsonData.data);
     }
-    useEffect(()=>{getData()},[]);
+    useEffect(()=>{getData()},[props.area_id]);
 
     function showInfo()
     {
