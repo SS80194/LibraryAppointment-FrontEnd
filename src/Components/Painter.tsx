@@ -63,6 +63,7 @@ export default function Painter(props:PainterProps)
     }
     useEffect(() => {
 	    window.addEventListener('resize', resizeChange);
+        resizeChange();
 	    return () => window.removeEventListener('resize', resizeChange);
 	}, []);
     //定义图片宽高变量，并加载图片
