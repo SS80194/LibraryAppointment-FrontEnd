@@ -3,13 +3,7 @@ import Konva from "konva";
 import {useState,useEffect,useRef} from "react";
 import useImage from "use-image"
 import useResizeAware from "react-resize-aware";
-
-type SeatDat = {
-    devId:number;
-    coordinate:string;
-    devName:string;
-    [key:string]:any;
-}
+import {SeatDat} from "../types"
 
 type PinProps={
     seat_status:SeatDat;
@@ -38,6 +32,7 @@ function KonvaImage(props:KimgProps)
 type PainterProps = {
     area_id:string;
     onClick?:(arg0:SeatDat)=>any;
+    
 }
 export default function Painter(props:PainterProps)
 {
@@ -106,7 +101,9 @@ export default function Painter(props:PainterProps)
     //选择座位
     function selectSeat(selectedSeat:SeatDat)
     {
-        console.log(selectedSeat.devName);
+        //console.log(selectedSeat.devName);
+        //console.log(typeof(props.onClick));
+        props.onClick?.(selectedSeat);
     }
     
     //子组件：彩色的

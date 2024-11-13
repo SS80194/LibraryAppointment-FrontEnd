@@ -2,6 +2,7 @@ import Painter from "./painter"
 import { Layout, Menu, theme } from "antd";
 import type {MenuProps} from "antd";
 import {useState} from "react"
+import {SeatDat} from "../types"
 
 const { Content, Sider } = Layout;
 
@@ -94,14 +95,14 @@ const items: MenuItem[] = [
   
 ];
 
-export default function SeatSelector()
+export default function SeatSelector(props:{onSelect?:(x:SeatDat)=>any})
 {
     const[area, setArea] = useState<string>("");
     const[seatId, setSeatId] = useState<string>("");
 
     const onClick: MenuProps['onClick'] = (e) => {
         console.log(e.key);
-        if(e.key === "W4-SW" || e.key === "W4-SE")
+        if(e.key === "W4-SW" || e.key === "W4-SE" || e.key === "W6-NW")
             setArea(e.key);
     }
 
@@ -122,7 +123,7 @@ export default function SeatSelector()
               minHeight: 280,
             }}>
             
-            {area&&<Painter area_id={area}/>}
+            {area&&<Painter area_id={area} onClick={props.onSelect}/>}
             </Content>
         
     </Layout>

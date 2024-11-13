@@ -57,6 +57,7 @@
 
 1. 很多用户会在手机上使用，必须使用响应式布局，布局可以参考官方做法。
 2. 喜欢的区域和配置文件必须在后端保存。
+3. 在线获取座位图：https://libseat.sjtu.edu.cn/ic-web/reserve?roomIds=25&resvDates=20241113&sysKind=8
 
 ### 工作内容
 
