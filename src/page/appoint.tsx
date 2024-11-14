@@ -1,4 +1,3 @@
-import Painter from "../components/painter"
 import dayjs,{Dayjs} from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import {useState,useEffect} from "react"
@@ -34,13 +33,13 @@ function disabledTime (date:Dayjs,appoint:boolean)
     }
     else if (date?.hour() === hour) {
         return {
-            disabledHours: () => range(0, 24).splice(0, hour),
+            disabledHours: () => [...range(0, 21).splice(0, hour),...range(22,24)],
             disabledMinutes: () => range(0, 60).splice(0, min)
         };
     }
     else {
         return {
-            disabledHours: () => range(0, 24).splice(0, hour)
+            disabledHours: () => [...range(0, 21).splice(0, hour),...range(22,24)]
         };
     }
 };
@@ -55,12 +54,16 @@ export default function AppointPage()
     },[seat]);
 
     let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs();
-    let defaultEndTime: Dayjs = dayjs('22:00', 'HH:mm');
+    let defaultEndTime: Dayjs = dayjs('21:59', 'HH:mm');
     const format = "HH:mm";
 
     const [startTime,setStart] = useState<Dayjs>(defaultStartTime);
     const [endTime,setEnd] = useState<Dayjs>(defaultEndTime);
-    const setRange = (times:[Dayjs,Dayjs])=>{setStart(times[0]);setEnd(times[1]);}
+    const setRange = (dates:any,dateStrings:[string,string])=>{
+        
+        setStart(dayjs(dateStrings[0], 'HH:mm'));
+        setEnd(dayjs(dateStrings[1], 'HH:mm'));
+    }
 
     useEffect(()=>{
         if(!mode){
@@ -68,6 +71,10 @@ export default function AppointPage()
                 setStart(dayjs());
         }
     },[mode])
+
+    useEffect(()=>{
+        console.log(startTime,endTime);
+    },[startTime,endTime])
 
     //Submit:
     function submit():void
@@ -90,7 +97,9 @@ export default function AppointPage()
         <TimePicker.RangePicker 
             needConfirm={false}
             disabledTime={(e)=>disabledTime(e,mode)}
-            defaultValue={[defaultStartTime, defaultEndTime]} format={format} >
+            defaultValue={[defaultStartTime, defaultEndTime]} 
+            onChange={setRange}
+            format={format} >
         </TimePicker.RangePicker>
 
         <p>{seat?seat.devName:"unselected"}</p>
