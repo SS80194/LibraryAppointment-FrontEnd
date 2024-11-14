@@ -5,6 +5,7 @@ import {useState,useEffect} from "react"
 import SeatSelector from "../components/seatselector"
 import {SeatDat} from "../types"
 import {Switch,TimePicker,Button} from "antd"
+import Navbar from "../components/navbar"
 
 dayjs.extend(customParseFormat)
 
@@ -78,6 +79,7 @@ export default function AppointPage()
 
     //return Components:
     return <div>
+        <Navbar pageName="appoint"/>
         <Switch onChange={(e)=>setMode(e)}
             checkedChildren="预定次日座位"
             unCheckedChildren="预约今日座位"
