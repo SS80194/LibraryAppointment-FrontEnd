@@ -1,9 +1,10 @@
 import dayjs,{Dayjs} from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat'
-import {useState,useEffect} from "react"
+import {useState,useEffect,useRef} from "react"
 import SeatSelector from "../components/seatselector"
+import Picker from "../components/picker"
 import {SeatDat} from "../types"
-import {Switch,TimePicker,Button} from "antd"
+import {Switch,Button} from "antd"
 import Navbar from "../components/navbar"
 
 dayjs.extend(customParseFormat)
@@ -13,74 +14,24 @@ function isNight():boolean
     let currentHour = new Date().getHours();
     return (currentHour>21);
 }
-
-function range(l:number,r:number):number[]
-{
-    let t:number[] = [];
-    for(let i=l;i<=r;i++) t=[...t,i];
-    return t;
-}
-
-function disabledTime (date:Dayjs,appoint:boolean)
-{
-    const hour:number = new Date().getHours(); // 获取当前的小时
-    const min:number = new Date().getMinutes(); // 获取当前的分钟
-    
-    if(appoint){
-        return {
-            disabledHours: () => [...range(0, 7),...range(22,24)],
-        }
-    }
-    else if (date?.hour() === hour) {
-        return {
-            disabledHours: () => [...range(0, 21).splice(0, hour),...range(22,24)],
-            disabledMinutes: () => range(0, 60).splice(0, min)
-        };
-    }
-    else {
-        return {
-            disabledHours: () => [...range(0, 21).splice(0, hour),...range(22,24)]
-        };
-    }
-};
 export default function AppointPage()
 {
     //mode 为 true 表示预定次日座位
     const [mode,setMode]=useState<boolean>(isNight());
     const [seat,setSeat]=useState<SeatDat|null>(null);
+    const pickerRef = useRef<React.ForwardRefExoticComponent<{mode: boolean;} & React.RefAttributes<unknown>>>(null);
 
     useEffect(()=>{
         
     },[seat]);
 
-    let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs();
-    let defaultEndTime: Dayjs = dayjs('21:59', 'HH:mm');
-    const format = "HH:mm";
-
-    const [startTime,setStart] = useState<Dayjs>(defaultStartTime);
-    const [endTime,setEnd] = useState<Dayjs>(defaultEndTime);
-    const setRange = (dates:any,dateStrings:[string,string])=>{
-        
-        setStart(dayjs(dateStrings[0], 'HH:mm'));
-        setEnd(dayjs(dateStrings[1], 'HH:mm'));
-    }
-
-    useEffect(()=>{
-        if(!mode){
-            if(startTime < dayjs())
-                setStart(dayjs());
-        }
-    },[mode])
-
-    useEffect(()=>{
-        console.log(startTime,endTime);
-    },[startTime,endTime])
-
     //Submit:
     function submit():void
     {
         console.log("submit!");
-        console.log(startTime.toString(),endTime.toString());
+        let startTime:Dayjs = (pickerRef.current as any)?.getStart();
+        let endTime:Dayjs = (pickerRef.current as any)?.getEnd();
+        console.log(startTime.toString(),endTime.toString);
         console.log(seat?.devName);
     }
 
@@ -93,14 +44,7 @@ export default function AppointPage()
             defaultChecked={mode}
         ></Switch>
         
-        
-        <TimePicker.RangePicker 
-            needConfirm={false}
-            disabledTime={(e)=>disabledTime(e,mode)}
-            defaultValue={[defaultStartTime, defaultEndTime]} 
-            onChange={setRange}
-            format={format} >
-        </TimePicker.RangePicker>
+        <Picker mode={mode} ref={pickerRef}/>
 
         <p>{seat?seat.devName:"unselected"}</p>
         
