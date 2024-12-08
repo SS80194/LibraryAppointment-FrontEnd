@@ -1,5 +1,7 @@
 import dayjs,{Dayjs} from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import minMax from 'dayjs/plugin/minMax'
+import utc from 'dayjs/plugin/utc'
 import {useState,useEffect,useRef} from "react"
 import SeatSelector from "../components/seatselector"
 import Picker from "../components/picker"
@@ -8,6 +10,11 @@ import {Switch,Button} from "antd"
 import Navbar from "../components/navbar"
 
 dayjs.extend(customParseFormat)
+dayjs.extend(minMax)
+dayjs.extend(utc);
+
+//Your pre_defined token(hardcoded)
+let ACCESS_TOKEN = "x114514";
 
 function isNight():boolean
 {
@@ -26,13 +33,49 @@ export default function AppointPage()
     },[seat]);
 
     //Submit:
-    function submit():void
+    async function submit()
     {
         console.log("submit!");
         let startTime:Dayjs = (pickerRef.current as any)?.getStart();
         let endTime:Dayjs = (pickerRef.current as any)?.getEnd();
-        console.log(startTime.toString(),endTime.toString);
-        console.log(seat?.devName);
+        //console.log(startTime.toISOString(),endTime.toISOString);
+        //console.log(seat?.devName,seat?.devId);
+        if(!mode) startTime = dayjs.max(startTime,dayjs());
+        else{
+            //delay one day because its tommorow's reservation.
+            startTime.add(1,'day');
+            endTime.add(1,'day');
+        }
+        //startTime should be set to now if reservation mode is today
+        let body = {
+            "seat_id":seat?.devId,
+            "start_time":startTime.utc().format('YYYY-MM-DDTHH:mm:ss[Z]'),
+            "end_time":endTime.utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+        };
+        let msg = {
+            method:"POST",
+            headers:{
+                "Content-Type": "application/json",
+                "token":ACCESS_TOKEN?ACCESS_TOKEN:""
+            },
+            body:JSON.stringify(body)
+        }
+        
+        console.log(msg)
+        let base_url = "http://127.0.0.1:5000", url="";
+        let response,status_code;
+        if(!mode){
+            url = base_url + "/reserve";
+            
+        } else {
+            //TODO:reservation/add to plan.
+            url = base_url + "/addtoplan"
+        }
+        response = await fetch(url,msg);
+        status_code = response.status
+        response = await response.json();
+        console.log(status_code);
+        console.log(response);
     }
 
     //return Components:
@@ -43,6 +86,8 @@ export default function AppointPage()
             unCheckedChildren="预约今日座位"
             defaultChecked={mode}
         ></Switch>
+
+        <br></br>
         
         <Picker mode={mode} ref={pickerRef}/>
 
