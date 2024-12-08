@@ -1,6 +1,6 @@
 import dayjs,{Dayjs} from 'dayjs';
 import {Switch,TimePicker,Button} from "antd"
-import {useState, useEffect, useImperativeHandle, forwardRef} from "react"
+import {useState, useEffect, useImperativeHandle, forwardRef,useRef} from "react"
 
 function range(l:number,r:number):number[]
 {
@@ -37,14 +37,15 @@ const Picker = forwardRef((props:{mode:boolean},ref)=>
     // 使用 forwardRef 将 ref 转发给子组件
     // 使用 useImperativeHandle 暴露子组件的特定状态或方法
     useImperativeHandle(ref, () => ({
-      getStart: () => startTime, // 提供访问状态的方法
-      getEnd: () => endTime,
+      getStart: () => (mode?startTime.add(1,'day'):startTime), // 提供访问状态的方法
+      getEnd: () => (mode?endTime.add(1,'day'):endTime),
     }));
 
     let mode = props.mode;
     let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs();
     let defaultEndTime: Dayjs = dayjs('21:59', 'HH:mm');
     const format = "HH:mm";
+    //const timePickerRef = useRef(null);
 
     const [startTime,setStart] = useState<Dayjs>(defaultStartTime);
     const [endTime,setEnd] = useState<Dayjs>(defaultEndTime);

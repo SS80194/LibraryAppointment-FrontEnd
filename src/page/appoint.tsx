@@ -6,7 +6,7 @@ import {useState,useEffect,useRef} from "react"
 import SeatSelector from "../components/seatselector"
 import Picker from "../components/picker"
 import {SeatDat} from "../types"
-import {Switch,Button} from "antd"
+import {Switch,Button,notification} from "antd"
 import Navbar from "../components/navbar"
 
 dayjs.extend(customParseFormat)
@@ -32,6 +32,17 @@ export default function AppointPage()
         
     },[seat]);
 
+    const [api, contextHolder] = notification.useNotification();
+
+    const openNotification = () => {
+        api.open({
+        message: 'Notification Title',
+        description:
+            'I will never close automatically. This is a purposely very very long description that has many many characters and words.',
+        duration: 3,
+        });
+    };
+
     //Submit:
     async function submit()
     {
@@ -41,11 +52,7 @@ export default function AppointPage()
         //console.log(startTime.toISOString(),endTime.toISOString);
         //console.log(seat?.devName,seat?.devId);
         if(!mode) startTime = dayjs.max(startTime,dayjs());
-        else{
-            //delay one day because its tommorow's reservation.
-            startTime.add(1,'day');
-            endTime.add(1,'day');
-        }
+        
         //startTime should be set to now if reservation mode is today
         let body = {
             "seat_id":seat?.devId,
@@ -76,6 +83,26 @@ export default function AppointPage()
         response = await response.json();
         console.log(status_code);
         console.log(response);
+        //openNotification();
+        if(status_code === 200){
+            notification.success({
+            message:`${response.status}`,
+            description:(<>
+                <p>{response.message}</p>
+                <p>座位号:{seat?.devName}</p>
+                <p>开始时间{startTime.format('YYYY-MM-DD HH:mm')}</p>
+                <p>结束时间:{endTime.format('YYYY-MM-DD HH:mm')}</p>
+            </>),
+            duration:3
+            })
+        }else{
+            notification.error({
+                message:`${response.status}`,
+                description:`${response.message}`,
+                duration:3
+            })
+        }
+        
     }
 
     //return Components:
