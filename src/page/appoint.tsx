@@ -21,27 +21,40 @@ function isNight():boolean
     let currentHour = new Date().getHours();
     return (currentHour>21);
 }
+function getTodayStr():string
+{
+    let week_arr = ["星期日",  "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+    let str_date = dayjs().format('YYYY-MM-DD');
+    let str_day = week_arr[dayjs().day()];
+    return "今日: "+str_date+str_day;
+}
+function getTomStr():string
+{
+    let week_arr = ["星期日",  "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+    let tmd=dayjs().add(1,'day');
+    let str_date = tmd.format('YYYY-MM-DD');
+    let str_day = week_arr[tmd.day()];
+    return "次日: "+str_date+str_day;
+}
+//当日座位可预约的条件 (!before22)||!mode
+//代表加入任务计划（当前座位不可直接预约）的条件 before22&&mode
+function before22():boolean{
+    let todayAt22 = dayjs().hour(22).minute(0).second(0).millisecond(0); // 今天22:00
+    //当前时间在 22 点之前，且 time 是在明天，则 time 也是可以预约的。
+    if(dayjs().isBefore(todayAt22)) return true;
+    return false;
+}
 export default function AppointPage()
 {
     //mode 为 true 表示预定次日座位
     const [mode,setMode]=useState<boolean>(isNight());
+    //const [status,setStatus]= useState<boolean>(false);
     const [seat,setSeat]=useState<SeatDat|null>(null);
     const pickerRef = useRef<React.ForwardRefExoticComponent<{mode: boolean;} & React.RefAttributes<unknown>>>(null);
 
     useEffect(()=>{
         
     },[seat]);
-
-    const [api, contextHolder] = notification.useNotification();
-
-    const openNotification = () => {
-        api.open({
-        message: 'Notification Title',
-        description:
-            'I will never close automatically. This is a purposely very very long description that has many many characters and words.',
-        duration: 3,
-        });
-    };
 
     //Submit:
     async function submit()
@@ -51,7 +64,9 @@ export default function AppointPage()
         let endTime:Dayjs = (pickerRef.current as any)?.getEnd();
         //console.log(startTime.toISOString(),endTime.toISOString);
         //console.log(seat?.devName,seat?.devId);
-        if(!mode) startTime = dayjs.max(startTime,dayjs());
+        let submit_mode:boolean = !(mode&&before22);
+        //submit_mode = 1:addtoPlan =0 reserve
+        if(!submit_mode) startTime = dayjs.max(startTime,dayjs());
         
         //startTime should be set to now if reservation mode is today
         let body = {
@@ -71,7 +86,7 @@ export default function AppointPage()
         console.log(msg)
         let base_url = "http://127.0.0.1:5000", url="";
         let response,status_code;
-        if(!mode){
+        if(!submit_mode){
             url = base_url + "/reserve";
             
         } else {
@@ -93,35 +108,38 @@ export default function AppointPage()
                 <p>开始时间{startTime.format('YYYY-MM-DD HH:mm')}</p>
                 <p>结束时间:{endTime.format('YYYY-MM-DD HH:mm')}</p>
             </>),
+            placement:'top',
             duration:3
             })
         }else{
             notification.error({
                 message:`${response.status}`,
                 description:`${response.message}`,
-                duration:3
+                duration:3,
+                placement:'top',
             })
         }
         
     }
 
+
     //return Components:
     return <div>
         <Navbar pageName="appoint"/>
         <Switch onChange={(e)=>setMode(e)}
-            checkedChildren="预定次日座位"
-            unCheckedChildren="预约今日座位"
+            checkedChildren={getTomStr()}
+            unCheckedChildren={getTodayStr()}
             defaultChecked={mode}
         ></Switch>
 
         <br></br>
         
-        <Picker mode={mode} ref={pickerRef}/>
+        <Picker mode={mode} ref={pickerRef} />
 
         <p>{seat?seat.devName:"unselected"}</p>
         
         <Button onClick={submit} disabled={!seat}>
-            提交
+            {!(mode&&before22())?"直接预约座位":"加入抢座计划"}
         </Button>
 
         <SeatSelector onSelect={(s)=>{setSeat(s)}}/>

@@ -1,6 +1,9 @@
 import dayjs,{Dayjs} from 'dayjs';
 import {Switch,TimePicker,Button} from "antd"
 import {useState, useEffect, useImperativeHandle, forwardRef,useRef} from "react"
+import minMax from 'dayjs/plugin/minMax'
+
+dayjs.extend(minMax)
 
 function range(l:number,r:number):number[]
 {
@@ -43,7 +46,7 @@ const Picker = forwardRef((props:{mode:boolean},ref)=>
 
     function setDefault(){
         let mode = props.mode;
-        let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs();
+        let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs.max(dayjs(),dayjs('8:00', 'HH:mm'));
         let defaultEndTime: Dayjs = dayjs('21:59', 'HH:mm');
         settRange([defaultStartTime,defaultEndTime]);
     }
@@ -53,6 +56,7 @@ const Picker = forwardRef((props:{mode:boolean},ref)=>
     const [timeRange,settRange] = useState<[start:Dayjs,end:Dayjs]>([dayjs(),dayjs()]);
     const setRange = (dates:any,dateStrings:[string,string])=>{
         settRange([dayjs(dateStrings[0], 'HH:mm'),dayjs(dateStrings[1], 'HH:mm')])
+        //props.onChange((props.mode?dayjs(dateStrings[0], 'HH:mm').add(1,'day'):dayjs(dateStrings[0], 'HH:mm')))
     }
 
     useEffect(()=>{
