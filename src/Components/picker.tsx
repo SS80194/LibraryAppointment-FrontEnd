@@ -37,42 +37,39 @@ const Picker = forwardRef((props:{mode:boolean},ref)=>
     // 使用 forwardRef 将 ref 转发给子组件
     // 使用 useImperativeHandle 暴露子组件的特定状态或方法
     useImperativeHandle(ref, () => ({
-      getStart: () => (mode?startTime.add(1,'day'):startTime), // 提供访问状态的方法
-      getEnd: () => (mode?endTime.add(1,'day'):endTime),
+      getStart: () => (props.mode?timeRange[0].add(1,'day'):timeRange[0]), // 提供访问状态的方法
+      getEnd: () => (props.mode?timeRange[1].add(1,'day'):timeRange[1]),
     }));
 
-    let mode = props.mode;
-    let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs();
-    let defaultEndTime: Dayjs = dayjs('21:59', 'HH:mm');
+    function setDefault(){
+        let mode = props.mode;
+        let defaultStartTime: Dayjs = mode?dayjs('8:00', 'HH:mm'):dayjs();
+        let defaultEndTime: Dayjs = dayjs('21:59', 'HH:mm');
+        settRange([defaultStartTime,defaultEndTime]);
+    }
+    
     const format = "HH:mm";
-    //const timePickerRef = useRef(null);
-
-    const [startTime,setStart] = useState<Dayjs>(defaultStartTime);
-    const [endTime,setEnd] = useState<Dayjs>(defaultEndTime);
+    
+    const [timeRange,settRange] = useState<[start:Dayjs,end:Dayjs]>([dayjs(),dayjs()]);
     const setRange = (dates:any,dateStrings:[string,string])=>{
-        
-        setStart(dayjs(dateStrings[0], 'HH:mm'));
-        setEnd(dayjs(dateStrings[1], 'HH:mm'));
+        settRange([dayjs(dateStrings[0], 'HH:mm'),dayjs(dateStrings[1], 'HH:mm')])
     }
 
     useEffect(()=>{
-        if(!mode){
-            if(startTime < dayjs())
-                setStart(dayjs());
-        }
-    },[mode])
-
+        setDefault();
+    },[])
     useEffect(()=>{
-        //console.log(startTime,endTime);
-    },[startTime,endTime])
+        setDefault();
+    },[props.mode])
 
 
     return <>
         <TimePicker.RangePicker 
             needConfirm={false}
-            disabledTime={(e)=>disabledTime(e,mode)}
-            defaultValue={[defaultStartTime, defaultEndTime]} 
+            disabledTime={(e)=>disabledTime(e,props.mode)}
+            defaultValue={[dayjs(), dayjs()]} 
             onChange={setRange}
+            value={timeRange}
             format={format} >
         </TimePicker.RangePicker>
     </>
