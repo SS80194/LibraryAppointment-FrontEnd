@@ -24,6 +24,11 @@ const items: MenuItem[] = [
         label: '我的预约',
         key : 'history',
         disabled: false
+    },
+    {
+        label: '我的计划',
+        key : 'plan',
+        disabled: false
     }
   ];
 
