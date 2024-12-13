@@ -65,7 +65,7 @@ export default function AppointPage()
         let endTime:Dayjs = (pickerRef.current as any)?.getEnd();
         //console.log(startTime.toISOString(),endTime.toISOString);
         //console.log(seat?.devName,seat?.devId);
-        let submit_mode:boolean = !(mode&&before22);
+        let submit_mode:boolean = !(!mode&&before22());
         //submit_mode = 1:addtoPlan =0 reserve
         if(!submit_mode) startTime = dayjs.max(startTime,dayjs());
         
