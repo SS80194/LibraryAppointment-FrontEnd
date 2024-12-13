@@ -36,12 +36,25 @@ type PainterProps = {
 }
 export default function Painter(props:PainterProps)
 {
-    let area_id=props.area_id;
+    //let area_id=props.area_id;
     //研究一下怎么把这个东西倒进去
-    let res_path="/resources/";
-    let area_pic:string=area_id+'.jpg';
-    let area_data:string=area_id+'.json';
+    //let res_path="/resources/";
+    //let area_pic:string=area_id+'.jpg';
+    //let area_data:string=area_id+'.json';
     
+    const [area_pic,setAreaPic]=useState<string>("");
+    async function getAreaPic()
+    {
+        let area_pic_resp = await fetch (`http://127.0.0.1:5000/getseatpic?zone=${props.area_id}`,{})
+        let area_pic_url = await area_pic_resp.text()
+        console.log(area_pic_url)
+        setAreaPic(area_pic_url)
+    }
+    useEffect(()=>{getAreaPic()},[])
+    useEffect(()=>{getAreaPic()},[props.area_id])
+
+    const [area_data,setAreaData]=useState<string>("/resources/W4-SW.json");
+
     const [list,setList]=useState<SeatDat[]>();
 
     //定义窗口长宽变量，并监听窗口大小的变化。
@@ -66,7 +79,7 @@ export default function Painter(props:PainterProps)
     const [picH,setpicH] = useState<number>(1920);
     const [scale,setScale] = useState<number>(1);
     const [imgld,setImgld] = useState<boolean>(false);
-    const [BGimage,img_status] = useImage(res_path+area_pic);
+    const [BGimage,img_status] = useImage(area_pic);
     function getScale(){
         let scale_t:number;
         if(BGimage)
@@ -86,10 +99,14 @@ export default function Painter(props:PainterProps)
 
     async function getData()
     {
-        let res = await fetch(res_path+area_data);
+        //area_id
+        let tomorrow:string = "false" 
+        let url:string = `http://127.0.0.1:5000/getseatmap?zone=${props.area_id}&nextday=${tomorrow}`
+        let res = await fetch(url);
         let jsonData = await res.json();
         setList(jsonData.data);
     }
+    useEffect(()=>{getData()},[]);
     useEffect(()=>{getData()},[props.area_id]);
 
     function showInfo()
@@ -126,7 +143,7 @@ export default function Painter(props:PainterProps)
 
         <Layer>
             {
-            <KonvaImage src={res_path+area_pic} 
+            <KonvaImage src={area_pic} 
             maxWidth={width} maxHeight={height}/>
             }
         </Layer>

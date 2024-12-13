@@ -10,7 +10,7 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 export default function SeatSelector(props:{onSelect?:(x:SeatDat)=>any})
 {
-    const[area, setArea] = useState<string>("");
+    const[area, setArea] = useState<string>("27");
     const[seatId, setSeatId] = useState<string>("");
     const [items,setItems] = useState<MenuItem[]>([]);
 
@@ -32,8 +32,8 @@ export default function SeatSelector(props:{onSelect?:(x:SeatDat)=>any})
 
     const onClick: MenuProps['onClick'] = (e) => {
         console.log(e.key);
-        if(e.key === "W4-SW" || e.key === "W4-SE" || e.key === "W6-NW")
-            setArea(e.key);
+        //if(e.key === "W4-SW" || e.key === "W4-SE" || e.key === "W6-NW")
+        setArea(e.key);
     }
 
     return <Layout >
