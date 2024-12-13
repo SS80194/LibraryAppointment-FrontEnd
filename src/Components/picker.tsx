@@ -1,7 +1,8 @@
 import dayjs,{Dayjs} from 'dayjs';
 import {Switch,TimePicker,Button} from "antd"
-import {useState, useEffect, useImperativeHandle, forwardRef,useRef} from "react"
+import {useState, useEffect, useImperativeHandle, forwardRef,useContext} from "react"
 import minMax from 'dayjs/plugin/minMax'
+import {TimeContext} from "../context"
 
 dayjs.extend(minMax)
 
@@ -37,6 +38,8 @@ function disabledTime (date:Dayjs,appoint:boolean)
 
 const Picker = forwardRef((props:{mode:boolean},ref)=>
 {
+    //组件
+    const { setSelectedTime } = useContext(TimeContext);
     // 使用 forwardRef 将 ref 转发给子组件
     // 使用 useImperativeHandle 暴露子组件的特定状态或方法
     useImperativeHandle(ref, () => ({
@@ -56,6 +59,7 @@ const Picker = forwardRef((props:{mode:boolean},ref)=>
     const [timeRange,settRange] = useState<[start:Dayjs,end:Dayjs]>([dayjs(),dayjs()]);
     const setRange = (dates:any,dateStrings:[string,string])=>{
         settRange([dayjs(dateStrings[0], 'HH:mm'),dayjs(dateStrings[1], 'HH:mm')])
+        
         //props.onChange((props.mode?dayjs(dateStrings[0], 'HH:mm').add(1,'day'):dayjs(dateStrings[0], 'HH:mm')))
     }
 
@@ -66,6 +70,12 @@ const Picker = forwardRef((props:{mode:boolean},ref)=>
         setDefault();
     },[props.mode])
 
+    useEffect(()=>{
+        //在timeRange改变后更新Context
+        let start_stamp = (props.mode?timeRange[0].add(1,'day'):timeRange[0]).valueOf();
+        let end_stamp = (props.mode?timeRange[1].add(1,'day'):timeRange[1]).valueOf();
+        setSelectedTime([start_stamp,end_stamp]);
+    },[timeRange])
 
     return <>
         <TimePicker.RangePicker 

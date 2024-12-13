@@ -8,6 +8,7 @@ import Picker from "../components/picker"
 import {SeatDat} from "../types"
 import {Switch,Button,notification} from "antd"
 import Navbar from "../components/navbar"
+import { TimeProvider } from "../context";
 
 dayjs.extend(customParseFormat)
 dayjs.extend(minMax)
@@ -125,6 +126,7 @@ export default function AppointPage()
 
     //return Components:
     return <div>
+        <TimeProvider>
         <Navbar pageName="appoint"/>
         <Switch onChange={(e)=>setMode(e)}
             checkedChildren={getTomStr()}
@@ -143,6 +145,8 @@ export default function AppointPage()
         </Button>
 
         <SeatSelector onSelect={(s)=>{setSeat(s)}}/>
+            
+        </TimeProvider>
         {
             mode?
             <p>提示：如果您要预定次日座位，为什么不试试候补功能呢？</p>

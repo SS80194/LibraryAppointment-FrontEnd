@@ -1,14 +1,16 @@
 import {Stage,Layer,Circle,Image} from "react-konva"
 import Konva from "konva";
-import {useState,useEffect,useRef} from "react";
+import {useState,useEffect,useRef,useContext} from "react";
 import useImage from "use-image"
 import useResizeAware from "react-resize-aware";
 import {SeatDat} from "../types"
+import {TimeContext} from "../context"
 
 type PinProps={
     seat_status:SeatDat;
     width:number;
     height:number;
+    status:number;
     onClick:(arg0:SeatDat)=>any;
 }
 
@@ -114,13 +116,35 @@ export default function Painter(props:PainterProps)
         //用来console.log一些所需要的信息
     }
     //showInfo();
- 
+    //获取时间，检查冲突
+    
+    const { selectedTime } = useContext(TimeContext);
+    function checkStatus(seat_status:SeatDat):number
+    {
+        //1 表示绿色的（没有被占用）
+        //3 表示被占用（黄色的）
+        //console.log(seat_status.resvInfo)
+        function independent(tr1:[number,number],tr2:[number,number])
+        {
+            if(tr1[1]<tr2[0]||tr2[1]<tr1[0]) return true;
+        }
+        for(let resv of seat_status.resvInfo){
+            if(!independent(selectedTime,[resv.startTime,resv.endTime])) {
+                return 3;
+            }
+        }
+        return 1;
+    }
+    //selected Time,Assigned Here
+    //console.log(selectedTime);
     //选择座位
+    const[seat,setSeat]=useState<number>(0)
     function selectSeat(selectedSeat:SeatDat)
     {
         //console.log(selectedSeat.devName);
         //console.log(typeof(props.onClick));
         props.onClick?.(selectedSeat);
+        setSeat(selectedSeat.devId)
     }
     
     //子组件：彩色的
@@ -132,9 +156,12 @@ export default function Painter(props:PainterProps)
         //How to use TS here?
         let x: number = Number(x_string);
         let y: number = Number(y_string);
+        let color:string = (props.status===1?"green":"orange")
+        if(seat === props.seat_status.devId)
+            color= (props.status===1?"blue":"red")
         return (<Circle x={(x/100)*props.width} y={(y/100)*props.height} 
         onClick={()=>props.onClick(props.seat_status)}
-        radius={5} fill="green"/>)
+        radius={5} fill={color}/>)
     }
     //本组件
     return (
@@ -153,8 +180,9 @@ export default function Painter(props:PainterProps)
             list.map(seat_status=><ColoredPin 
                 seat_status={seat_status}
                 width={picW} height={picH}
-                onClick={props.onClick?props.onClick:selectSeat}
-                key={seat_status.devId}/>)
+                onClick={selectSeat}
+                key={seat_status.devId}
+                status={checkStatus(seat_status)}/>)
         }
         </Layer>
     </Stage></div>)
